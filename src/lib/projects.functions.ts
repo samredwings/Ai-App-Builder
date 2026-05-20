@@ -56,7 +56,9 @@ export const getProject = createServerFn({ method: "POST" })
     };
   });
 
+export const deleteProject = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
+
   .inputValidator((input) => z.object({ projectId: z.string().uuid() }).parse(input))
   .handler(async ({ data, context }) => {
     const { error } = await supabaseAdmin
