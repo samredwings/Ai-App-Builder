@@ -38,22 +38,24 @@ export const getProject = createServerFn({ method: "POST" })
         .select("id, role, content, created_at")
         .eq("project_id", project.id)
         .order("created_at", { ascending: true }),
-      supabaseAdmin
-        .from("project_versions")
-        .select("tabs")
-        .eq("id", project.current_version_id)
-        .maybeSingle(),
+      project.current_version_id
+        ? supabaseAdmin
+            .from("project_versions")
+            .select("tabs")
+            .eq("id", project.current_version_id)
+            .maybeSingle()
+        : Promise.resolve({ data: null }),
     ]);
 
+    const tabs = (current?.tabs ?? []) as Array<{ name: string; icon: string; html: string }>;
     return {
       project,
       versions: versions ?? [],
       messages: messages ?? [],
-      tabs: (current?.tabs as unknown[]) ?? [],
+      tabs,
     };
   });
 
-export const deleteProject = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) => z.object({ projectId: z.string().uuid() }).parse(input))
   .handler(async ({ data, context }) => {

@@ -201,6 +201,7 @@ export const refineProject = createServerFn({ method: "POST" })
       .eq("id", data.projectId)
       .single();
     if (!project || project.owner_id !== userId) throw new Error("Not found");
+    if (!project.current_version_id) throw new Error("No current version");
 
     const { data: current } = await supabaseAdmin
       .from("project_versions")
@@ -208,6 +209,7 @@ export const refineProject = createServerFn({ method: "POST" })
       .eq("id", project.current_version_id)
       .single();
     if (!current) throw new Error("No current version");
+
 
     const messages = [
       { role: "system" as const, content: SYSTEM_GENERATE },
@@ -313,10 +315,15 @@ export const updateProjectMeta = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const { userId } = context;
-    const patch: Record<string, unknown> = {};
+    const patch: {
+      title?: string;
+      theme?: { primary: string; background: string; foreground: string; accent: string };
+      is_published?: boolean;
+    } = {};
     if (data.title !== undefined) patch.title = data.title;
     if (data.theme !== undefined) patch.theme = data.theme;
     if (data.is_published !== undefined) patch.is_published = data.is_published;
+
     const { error } = await supabaseAdmin
       .from("projects")
       .update(patch)
