@@ -14,7 +14,163 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      app_data: {
+        Row: {
+          device_key: string
+          id: string
+          key: string
+          project_id: string
+          updated_at: string
+          value: Json
+        }
+        Insert: {
+          device_key: string
+          id?: string
+          key: string
+          project_id: string
+          updated_at?: string
+          value: Json
+        }
+        Update: {
+          device_key?: string
+          id?: string
+          key?: string
+          project_id?: string
+          updated_at?: string
+          value?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "app_data_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_messages: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          project_id: string
+          role: string
+          version_id_after: string | null
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          project_id: string
+          role: string
+          version_id_after?: string | null
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          project_id?: string
+          role?: string
+          version_id_after?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_messages_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_messages_version_id_after_fkey"
+            columns: ["version_id_after"]
+            isOneToOne: false
+            referencedRelation: "project_versions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_versions: {
+        Row: {
+          created_at: string
+          created_by_message: string | null
+          id: string
+          project_id: string
+          tabs: Json
+          version_num: number
+        }
+        Insert: {
+          created_at?: string
+          created_by_message?: string | null
+          id?: string
+          project_id: string
+          tabs: Json
+          version_num: number
+        }
+        Update: {
+          created_at?: string
+          created_by_message?: string | null
+          id?: string
+          project_id?: string
+          tabs?: Json
+          version_num?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_versions_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      projects: {
+        Row: {
+          created_at: string
+          current_version_id: string | null
+          icon_url: string | null
+          id: string
+          is_published: boolean
+          owner_id: string
+          prompt: string
+          slug: string
+          template_family: string
+          theme: Json
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          current_version_id?: string | null
+          icon_url?: string | null
+          id?: string
+          is_published?: boolean
+          owner_id: string
+          prompt?: string
+          slug: string
+          template_family?: string
+          theme?: Json
+          title?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          current_version_id?: string | null
+          icon_url?: string | null
+          id?: string
+          is_published?: boolean
+          owner_id?: string
+          prompt?: string
+          slug?: string
+          template_family?: string
+          theme?: Json
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
