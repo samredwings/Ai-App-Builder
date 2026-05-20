@@ -12,8 +12,11 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ASlugRouteImport } from './routes/a.$slug'
 import { Route as AuthenticatedNewRouteImport } from './routes/_authenticated/new'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedEditorIdRouteImport } from './routes/_authenticated/editor.$id'
+import { Route as ApiPublicManifestSlugRouteImport } from './routes/api/public/manifest.$slug'
 
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
@@ -29,6 +32,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ASlugRoute = ASlugRouteImport.update({
+  id: '/a/$slug',
+  path: '/a/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedNewRoute = AuthenticatedNewRouteImport.update({
   id: '/new',
   path: '/new',
@@ -39,18 +47,34 @@ const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedEditorIdRoute = AuthenticatedEditorIdRouteImport.update({
+  id: '/editor/$id',
+  path: '/editor/$id',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const ApiPublicManifestSlugRoute = ApiPublicManifestSlugRouteImport.update({
+  id: '/api/public/manifest/$slug',
+  path: '/api/public/manifest/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/new': typeof AuthenticatedNewRoute
+  '/a/$slug': typeof ASlugRoute
+  '/editor/$id': typeof AuthenticatedEditorIdRoute
+  '/api/public/manifest/$slug': typeof ApiPublicManifestSlugRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/new': typeof AuthenticatedNewRoute
+  '/a/$slug': typeof ASlugRoute
+  '/editor/$id': typeof AuthenticatedEditorIdRoute
+  '/api/public/manifest/$slug': typeof ApiPublicManifestSlugRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -59,12 +83,29 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/new': typeof AuthenticatedNewRoute
+  '/a/$slug': typeof ASlugRoute
+  '/_authenticated/editor/$id': typeof AuthenticatedEditorIdRoute
+  '/api/public/manifest/$slug': typeof ApiPublicManifestSlugRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth' | '/dashboard' | '/new'
+  fullPaths:
+    | '/'
+    | '/auth'
+    | '/dashboard'
+    | '/new'
+    | '/a/$slug'
+    | '/editor/$id'
+    | '/api/public/manifest/$slug'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/dashboard' | '/new'
+  to:
+    | '/'
+    | '/auth'
+    | '/dashboard'
+    | '/new'
+    | '/a/$slug'
+    | '/editor/$id'
+    | '/api/public/manifest/$slug'
   id:
     | '__root__'
     | '/'
@@ -72,12 +113,17 @@ export interface FileRouteTypes {
     | '/auth'
     | '/_authenticated/dashboard'
     | '/_authenticated/new'
+    | '/a/$slug'
+    | '/_authenticated/editor/$id'
+    | '/api/public/manifest/$slug'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
   AuthRoute: typeof AuthRoute
+  ASlugRoute: typeof ASlugRoute
+  ApiPublicManifestSlugRoute: typeof ApiPublicManifestSlugRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -103,6 +149,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/a/$slug': {
+      id: '/a/$slug'
+      path: '/a/$slug'
+      fullPath: '/a/$slug'
+      preLoaderRoute: typeof ASlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/new': {
       id: '/_authenticated/new'
       path: '/new'
@@ -117,17 +170,33 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/editor/$id': {
+      id: '/_authenticated/editor/$id'
+      path: '/editor/$id'
+      fullPath: '/editor/$id'
+      preLoaderRoute: typeof AuthenticatedEditorIdRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/api/public/manifest/$slug': {
+      id: '/api/public/manifest/$slug'
+      path: '/api/public/manifest/$slug'
+      fullPath: '/api/public/manifest/$slug'
+      preLoaderRoute: typeof ApiPublicManifestSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 interface AuthenticatedRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedNewRoute: typeof AuthenticatedNewRoute
+  AuthenticatedEditorIdRoute: typeof AuthenticatedEditorIdRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedNewRoute: AuthenticatedNewRoute,
+  AuthenticatedEditorIdRoute: AuthenticatedEditorIdRoute,
 }
 
 const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
@@ -138,7 +207,19 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
   AuthRoute: AuthRoute,
+  ASlugRoute: ASlugRoute,
+  ApiPublicManifestSlugRoute: ApiPublicManifestSlugRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
