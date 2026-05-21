@@ -310,7 +310,94 @@ function Editor() {
               </div>
             </TabsContent>
 
-            <TabsContent value="versions" className="space-y-2">
+            <TabsContent value="ai" className="space-y-4">
+              <div className="space-y-2">
+                <Label>AI runtime</Label>
+                <Select
+                  value={project.ai_runtime}
+                  onValueChange={(v) =>
+                    aiMut.mutate({
+                      runtime: v as AIRuntime,
+                      remoteEndpoint: project.ai_remote_endpoint,
+                      remoteModel: project.ai_remote_model,
+                      ondeviceModel: project.ai_ondevice_model,
+                    })
+                  }
+                >
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="lovable">Lovable AI (default, safe)</SelectItem>
+                    <SelectItem value="remote">Remote endpoint (OpenAI-compatible)</SelectItem>
+                    <SelectItem value="on-device">On-device (offline APK only)</SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">
+                  {project.ai_runtime === "lovable" &&
+                    "Routed through this site. Content moderated."}
+                  {project.ai_runtime === "remote" &&
+                    "App calls your endpoint. Users paste their own API key inside the app. You bring the rules."}
+                  {project.ai_runtime === "on-device" &&
+                    "App loads a local .gguf model. Only works inside the APK built from the Export bundle."}
+                </p>
+              </div>
+
+              {project.ai_runtime === "remote" && (
+                <div className="space-y-2">
+                  <Label>Endpoint base URL</Label>
+                  <Input
+                    defaultValue={project.ai_remote_endpoint ?? ""}
+                    placeholder="https://openrouter.ai/api/v1"
+                    onBlur={(e) =>
+                      aiMut.mutate({
+                        runtime: "remote",
+                        remoteEndpoint: e.target.value.trim() || null,
+                        remoteModel: project.ai_remote_model,
+                        ondeviceModel: project.ai_ondevice_model,
+                      })
+                    }
+                  />
+                  <Label>Default model</Label>
+                  <Input
+                    defaultValue={project.ai_remote_model ?? ""}
+                    placeholder="e.g. meta-llama/llama-3.1-8b-instruct"
+                    onBlur={(e) =>
+                      aiMut.mutate({
+                        runtime: "remote",
+                        remoteEndpoint: project.ai_remote_endpoint,
+                        remoteModel: e.target.value.trim() || null,
+                        ondeviceModel: project.ai_ondevice_model,
+                      })
+                    }
+                  />
+                </div>
+              )}
+
+              {project.ai_runtime === "on-device" && (
+                <div className="space-y-2">
+                  <Label>Expected model filename</Label>
+                  <Input
+                    defaultValue={project.ai_ondevice_model ?? "model.gguf"}
+                    placeholder="model.gguf"
+                    onBlur={(e) =>
+                      aiMut.mutate({
+                        runtime: "on-device",
+                        remoteEndpoint: project.ai_remote_endpoint,
+                        remoteModel: project.ai_remote_model,
+                        ondeviceModel: e.target.value.trim() || null,
+                      })
+                    }
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Use the "Export APK bundle" button after publishing. Drop your .gguf
+                    into <code>android/app/src/main/assets/models/</code> and build in
+                    Android Studio. The app falls back to remote/Lovable when opened in a
+                    plain browser.
+                  </p>
+                </div>
+              )}
+            </TabsContent>
+
+
               {data.versions.map((v) => (
                 <div
                   key={v.id}
