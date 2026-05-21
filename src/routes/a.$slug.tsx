@@ -3,14 +3,16 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { renderAppHTML } from "@/lib/app-runtime";
-import type { Tab, Theme } from "@/lib/types";
+import type { Tab, Theme, AIRuntime } from "@/lib/types";
 
 const loadApp = createServerFn({ method: "GET" })
   .inputValidator((input) => z.object({ slug: z.string().min(1).max(80) }).parse(input))
   .handler(async ({ data }) => {
     const { data: project } = await supabaseAdmin
       .from("projects")
-      .select("id, slug, title, theme, icon_url, is_published, current_version_id")
+      .select(
+        "id, slug, title, theme, icon_url, is_published, current_version_id, ai_runtime, ai_remote_endpoint, ai_remote_model, ai_ondevice_model"
+      )
       .eq("slug", data.slug)
       .maybeSingle();
     if (!project || !project.is_published || !project.current_version_id) return null;
@@ -28,6 +30,12 @@ const loadApp = createServerFn({ method: "GET" })
       theme: project.theme as unknown as Theme,
       iconUrl: project.icon_url,
       tabs,
+      ai: {
+        runtime: project.ai_runtime as AIRuntime,
+        remoteEndpoint: project.ai_remote_endpoint,
+        remoteModel: project.ai_remote_model,
+        ondeviceModel: project.ai_ondevice_model,
+      },
     };
   });
 
@@ -71,8 +79,8 @@ function PublicApp() {
     tabs: app.tabs,
     manifestUrl: `/api/public/manifest/${app.slug}`,
     appDataEndpoint: `/api/public/app-data/${app.slug}`,
+    ai: app.ai,
   });
-  // Render full-screen iframe so the generated app gets a clean document.
   return (
     <iframe
       title={app.title}

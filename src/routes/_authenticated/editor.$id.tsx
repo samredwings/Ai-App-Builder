@@ -9,14 +9,16 @@ import {
   updateProjectMeta,
   regenerateIcon,
 } from "@/lib/generate.functions";
+import { updateAIRuntime, exportAPKBundle } from "@/lib/export.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { renderAppHTML } from "@/lib/app-runtime";
-import type { Theme } from "@/lib/types";
+import type { Theme, AIRuntime } from "@/lib/types";
 
 export const Route = createFileRoute("/_authenticated/editor/$id")({
   head: () => ({ meta: [{ title: "Editor — App Forge" }] }),
@@ -30,6 +32,10 @@ type ProjectRow = {
   theme: Theme;
   icon_url: string | null;
   is_published: boolean;
+  ai_runtime: AIRuntime;
+  ai_remote_endpoint: string | null;
+  ai_remote_model: string | null;
+  ai_ondevice_model: string | null;
 };
 
 function Editor() {
