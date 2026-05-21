@@ -84,6 +84,42 @@ function Editor() {
     onError: (e) => toast.error(e instanceof Error ? e.message : "Failed"),
   });
 
+  const updateAI = useServerFn(updateAIRuntime);
+  const exportBundle = useServerFn(exportAPKBundle);
+
+  const aiMut = useMutation({
+    mutationFn: (patch: {
+      runtime: AIRuntime;
+      remoteEndpoint?: string | null;
+      remoteModel?: string | null;
+      ondeviceModel?: string | null;
+    }) => updateAI({ data: { projectId: id, ...patch } }),
+    onSuccess: () => {
+      toast.success("AI runtime updated");
+      refetch();
+    },
+    onError: (e) => toast.error(e instanceof Error ? e.message : "Failed"),
+  });
+
+  const exportMut = useMutation({
+    mutationFn: () =>
+      exportBundle({ data: { projectId: id, origin: window.location.origin } }),
+    onSuccess: (res) => {
+      const blob = new Blob(
+        [Uint8Array.from(atob(res.base64), (c) => c.charCodeAt(0))],
+        { type: "application/zip" }
+      );
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = res.filename;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast.success("APK bundle downloaded");
+    },
+    onError: (e) => toast.error(e instanceof Error ? e.message : "Export failed"),
+  });
+
   const previewHtml = useMemo(() => {
     if (!data) return "";
     const p = data.project as unknown as ProjectRow;
@@ -95,6 +131,12 @@ function Editor() {
       tabs: data.tabs,
       manifestUrl: `/api/public/manifest/${p.slug}`,
       appDataEndpoint: `/api/public/app-data/${p.slug}`,
+      ai: {
+        runtime: p.ai_runtime,
+        remoteEndpoint: p.ai_remote_endpoint,
+        remoteModel: p.ai_remote_model,
+        ondeviceModel: p.ai_ondevice_model,
+      },
     });
   }, [data]);
 
