@@ -182,13 +182,24 @@ function Editor() {
             {project.is_published ? "Unpublish" : "Publish"}
           </Button>
           {project.is_published && (
+            <Button
+              size="sm"
+              variant="secondary"
+              disabled={exportMut.isPending}
+              onClick={() => exportMut.mutate()}
+              title="Download a ready-to-build Capacitor project (APK + optional offline AI)"
+            >
+              {exportMut.isPending ? "Packaging…" : "Export APK bundle"}
+            </Button>
+          )}
+          {project.is_published && (
             <a
               href={`https://www.pwabuilder.com/reportcard?site=${encodeURIComponent(publishedUrl)}`}
               target="_blank"
               rel="noopener"
             >
-              <Button size="sm" variant="secondary">
-                Get APK ↗
+              <Button size="sm" variant="ghost">
+                PWA APK ↗
               </Button>
             </a>
           )}
@@ -210,6 +221,9 @@ function Editor() {
               </TabsTrigger>
               <TabsTrigger value="design" className="flex-1">
                 Design
+              </TabsTrigger>
+              <TabsTrigger value="ai" className="flex-1">
+                AI
               </TabsTrigger>
               <TabsTrigger value="versions" className="flex-1">
                 Versions
