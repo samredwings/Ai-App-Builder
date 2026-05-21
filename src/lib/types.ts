@@ -1,7 +1,7 @@
 export type Tab = {
   name: string;
-  icon: string; // emoji or lucide-name; we render as text
-  html: string; // raw HTML body for this tab
+  icon: string;
+  html: string;
 };
 
 export type Theme = {
@@ -9,6 +9,15 @@ export type Theme = {
   background: string;
   foreground: string;
   accent: string;
+};
+
+export type AIRuntime = "lovable" | "remote" | "on-device";
+
+export type AIConfig = {
+  runtime: AIRuntime;
+  remoteEndpoint?: string | null;
+  remoteModel?: string | null;
+  ondeviceModel?: string | null;
 };
 
 export type AppSpec = {

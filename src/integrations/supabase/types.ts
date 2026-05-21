@@ -128,6 +128,10 @@ export type Database = {
       }
       projects: {
         Row: {
+          ai_ondevice_model: string | null
+          ai_remote_endpoint: string | null
+          ai_remote_model: string | null
+          ai_runtime: string
           created_at: string
           current_version_id: string | null
           icon_url: string | null
@@ -142,6 +146,10 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          ai_ondevice_model?: string | null
+          ai_remote_endpoint?: string | null
+          ai_remote_model?: string | null
+          ai_runtime?: string
           created_at?: string
           current_version_id?: string | null
           icon_url?: string | null
@@ -156,6 +164,10 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          ai_ondevice_model?: string | null
+          ai_remote_endpoint?: string | null
+          ai_remote_model?: string | null
+          ai_runtime?: string
           created_at?: string
           current_version_id?: string | null
           icon_url?: string | null

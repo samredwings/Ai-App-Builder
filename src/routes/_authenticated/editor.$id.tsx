@@ -9,14 +9,16 @@ import {
   updateProjectMeta,
   regenerateIcon,
 } from "@/lib/generate.functions";
+import { updateAIRuntime, exportAPKBundle } from "@/lib/export.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { renderAppHTML } from "@/lib/app-runtime";
-import type { Theme } from "@/lib/types";
+import type { Theme, AIRuntime } from "@/lib/types";
 
 export const Route = createFileRoute("/_authenticated/editor/$id")({
   head: () => ({ meta: [{ title: "Editor — App Forge" }] }),
@@ -30,6 +32,10 @@ type ProjectRow = {
   theme: Theme;
   icon_url: string | null;
   is_published: boolean;
+  ai_runtime: AIRuntime;
+  ai_remote_endpoint: string | null;
+  ai_remote_model: string | null;
+  ai_ondevice_model: string | null;
 };
 
 function Editor() {
@@ -78,6 +84,42 @@ function Editor() {
     onError: (e) => toast.error(e instanceof Error ? e.message : "Failed"),
   });
 
+  const updateAI = useServerFn(updateAIRuntime);
+  const exportBundle = useServerFn(exportAPKBundle);
+
+  const aiMut = useMutation({
+    mutationFn: (patch: {
+      runtime: AIRuntime;
+      remoteEndpoint?: string | null;
+      remoteModel?: string | null;
+      ondeviceModel?: string | null;
+    }) => updateAI({ data: { projectId: id, ...patch } }),
+    onSuccess: () => {
+      toast.success("AI runtime updated");
+      refetch();
+    },
+    onError: (e) => toast.error(e instanceof Error ? e.message : "Failed"),
+  });
+
+  const exportMut = useMutation({
+    mutationFn: () =>
+      exportBundle({ data: { projectId: id, origin: window.location.origin } }),
+    onSuccess: (res) => {
+      const blob = new Blob(
+        [Uint8Array.from(atob(res.base64), (c) => c.charCodeAt(0))],
+        { type: "application/zip" }
+      );
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = res.filename;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast.success("APK bundle downloaded");
+    },
+    onError: (e) => toast.error(e instanceof Error ? e.message : "Export failed"),
+  });
+
   const previewHtml = useMemo(() => {
     if (!data) return "";
     const p = data.project as unknown as ProjectRow;
@@ -89,6 +131,12 @@ function Editor() {
       tabs: data.tabs,
       manifestUrl: `/api/public/manifest/${p.slug}`,
       appDataEndpoint: `/api/public/app-data/${p.slug}`,
+      ai: {
+        runtime: p.ai_runtime,
+        remoteEndpoint: p.ai_remote_endpoint,
+        remoteModel: p.ai_remote_model,
+        ondeviceModel: p.ai_ondevice_model,
+      },
     });
   }, [data]);
 
@@ -134,13 +182,24 @@ function Editor() {
             {project.is_published ? "Unpublish" : "Publish"}
           </Button>
           {project.is_published && (
+            <Button
+              size="sm"
+              variant="secondary"
+              disabled={exportMut.isPending}
+              onClick={() => exportMut.mutate()}
+              title="Download a ready-to-build Capacitor project (APK + optional offline AI)"
+            >
+              {exportMut.isPending ? "Packaging…" : "Export APK bundle"}
+            </Button>
+          )}
+          {project.is_published && (
             <a
               href={`https://www.pwabuilder.com/reportcard?site=${encodeURIComponent(publishedUrl)}`}
               target="_blank"
               rel="noopener"
             >
-              <Button size="sm" variant="secondary">
-                Get APK ↗
+              <Button size="sm" variant="ghost">
+                PWA APK ↗
               </Button>
             </a>
           )}
@@ -162,6 +221,9 @@ function Editor() {
               </TabsTrigger>
               <TabsTrigger value="design" className="flex-1">
                 Design
+              </TabsTrigger>
+              <TabsTrigger value="ai" className="flex-1">
+                AI
               </TabsTrigger>
               <TabsTrigger value="versions" className="flex-1">
                 Versions
@@ -246,6 +308,93 @@ function Editor() {
                   </Button>
                 </div>
               </div>
+            </TabsContent>
+
+            <TabsContent value="ai" className="space-y-4">
+              <div className="space-y-2">
+                <Label>AI runtime</Label>
+                <Select
+                  value={project.ai_runtime}
+                  onValueChange={(v) =>
+                    aiMut.mutate({
+                      runtime: v as AIRuntime,
+                      remoteEndpoint: project.ai_remote_endpoint,
+                      remoteModel: project.ai_remote_model,
+                      ondeviceModel: project.ai_ondevice_model,
+                    })
+                  }
+                >
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="lovable">Lovable AI (default, safe)</SelectItem>
+                    <SelectItem value="remote">Remote endpoint (OpenAI-compatible)</SelectItem>
+                    <SelectItem value="on-device">On-device (offline APK only)</SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">
+                  {project.ai_runtime === "lovable" &&
+                    "Routed through this site. Content moderated."}
+                  {project.ai_runtime === "remote" &&
+                    "App calls your endpoint. Users paste their own API key inside the app. You bring the rules."}
+                  {project.ai_runtime === "on-device" &&
+                    "App loads a local .gguf model. Only works inside the APK built from the Export bundle."}
+                </p>
+              </div>
+
+              {project.ai_runtime === "remote" && (
+                <div className="space-y-2">
+                  <Label>Endpoint base URL</Label>
+                  <Input
+                    defaultValue={project.ai_remote_endpoint ?? ""}
+                    placeholder="https://openrouter.ai/api/v1"
+                    onBlur={(e) =>
+                      aiMut.mutate({
+                        runtime: "remote",
+                        remoteEndpoint: e.target.value.trim() || null,
+                        remoteModel: project.ai_remote_model,
+                        ondeviceModel: project.ai_ondevice_model,
+                      })
+                    }
+                  />
+                  <Label>Default model</Label>
+                  <Input
+                    defaultValue={project.ai_remote_model ?? ""}
+                    placeholder="e.g. meta-llama/llama-3.1-8b-instruct"
+                    onBlur={(e) =>
+                      aiMut.mutate({
+                        runtime: "remote",
+                        remoteEndpoint: project.ai_remote_endpoint,
+                        remoteModel: e.target.value.trim() || null,
+                        ondeviceModel: project.ai_ondevice_model,
+                      })
+                    }
+                  />
+                </div>
+              )}
+
+              {project.ai_runtime === "on-device" && (
+                <div className="space-y-2">
+                  <Label>Expected model filename</Label>
+                  <Input
+                    defaultValue={project.ai_ondevice_model ?? "model.gguf"}
+                    placeholder="model.gguf"
+                    onBlur={(e) =>
+                      aiMut.mutate({
+                        runtime: "on-device",
+                        remoteEndpoint: project.ai_remote_endpoint,
+                        remoteModel: project.ai_remote_model,
+                        ondeviceModel: e.target.value.trim() || null,
+                      })
+                    }
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Use the "Export APK bundle" button after publishing. Drop your .gguf
+                    into <code>android/app/src/main/assets/models/</code> and build in
+                    Android Studio. The app falls back to remote/Lovable when opened in a
+                    plain browser.
+                  </p>
+                </div>
+              )}
             </TabsContent>
 
             <TabsContent value="versions" className="space-y-2">
