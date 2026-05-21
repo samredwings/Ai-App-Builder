@@ -1,7 +1,6 @@
-import type { AppSpec, Tab, Theme } from "./types";
+import type { Tab, Theme, AIConfig } from "./types";
 
 // Returns the full HTML document served at /a/$slug.
-// Uses tailwind CDN + tiny hash router, no service worker.
 export function renderAppHTML(opts: {
   slug: string;
   title: string;
@@ -9,9 +8,10 @@ export function renderAppHTML(opts: {
   iconUrl: string | null;
   tabs: Tab[];
   manifestUrl: string;
-  appDataEndpoint: string; // e.g. /api/public/app-data/<slug>
+  appDataEndpoint: string;
+  ai: AIConfig;
 }): string {
-  const { title, theme, iconUrl, tabs, manifestUrl, appDataEndpoint } = opts;
+  const { title, theme, iconUrl, tabs, manifestUrl, appDataEndpoint, ai } = opts;
 
   const safeTabs = tabs.map((t, i) => ({
     name: t.name || `Tab ${i + 1}`,
@@ -20,6 +20,13 @@ export function renderAppHTML(opts: {
   }));
 
   const tabsJSON = JSON.stringify(safeTabs);
+  const aiJSON = JSON.stringify({
+    runtime: ai.runtime,
+    remoteEndpoint: ai.remoteEndpoint ?? null,
+    remoteModel: ai.remoteModel ?? null,
+    ondeviceModel: ai.ondeviceModel ?? null,
+    proxyEndpoint: `/api/public/ai/${opts.slug}`,
+  });
 
   return `<!doctype html>
 <html lang="en">
@@ -59,7 +66,7 @@ ${iconUrl ? `<link rel="apple-touch-icon" href="${iconUrl}" />` : ""}
 <script>
 window.__APP_ENDPOINT__ = ${JSON.stringify(appDataEndpoint)};
 window.__APP_SLUG__ = ${JSON.stringify(opts.slug)};
-// Per-device key for app-data syncing.
+window.__AI_CONFIG__ = ${aiJSON};
 (function(){
   try {
     var k = localStorage.getItem("__app_device_key__");
@@ -78,6 +85,87 @@ window.appStorage = {
     try { localStorage.setItem("app:" + key, JSON.stringify(value)); } catch(e) {}
   },
 };
+
+// Unified AI helper available inside every generated app as window.appAI.
+// Routes by runtime: lovable (proxy), remote (user endpoint), on-device (Capacitor bridge).
+window.appAI = (function(){
+  var cfg = window.__AI_CONFIG__;
+
+  async function chatLovable(messages, model){
+    var r = await fetch(cfg.proxyEndpoint, {
+      method: "POST",
+      headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({ messages: messages, model: model || undefined })
+    });
+    if (!r.ok) throw new Error("AI error " + r.status + ": " + await r.text());
+    var j = await r.json();
+    return j.content || "";
+  }
+
+  function getRemoteKey(){
+    try { return localStorage.getItem("__ai_remote_key__") || ""; } catch(e) { return ""; }
+  }
+
+  async function chatRemote(messages, model){
+    var endpoint = cfg.remoteEndpoint;
+    if (!endpoint) throw new Error("Remote endpoint not configured");
+    var key = getRemoteKey();
+    var url = endpoint.replace(/\\/$/, "") + "/chat/completions";
+    var r = await fetch(url, {
+      method: "POST",
+      headers: Object.assign(
+        {"Content-Type": "application/json"},
+        key ? {"Authorization": "Bearer " + key} : {}
+      ),
+      body: JSON.stringify({
+        model: model || cfg.remoteModel || "default",
+        messages: messages
+      })
+    });
+    if (!r.ok) throw new Error("AI error " + r.status + ": " + await r.text());
+    var j = await r.json();
+    return (j.choices && j.choices[0] && j.choices[0].message && j.choices[0].message.content) || "";
+  }
+
+  async function chatOnDevice(messages){
+    // Provided by the Capacitor APK shell via @capacitor-llama (or compatible plugin).
+    // window.LlamaBridge.chat({ messages }) -> Promise<{ content: string }>
+    var bridge = window.LlamaBridge || (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Llama);
+    if (!bridge || typeof bridge.chat !== "function") {
+      throw new Error("On-device model not available. Install via the APK build to enable offline AI.");
+    }
+    var res = await bridge.chat({ messages: messages, model: cfg.ondeviceModel || undefined });
+    return (res && res.content) || "";
+  }
+
+  return {
+    runtime: cfg.runtime,
+    setRemoteKey: function(k){ try { localStorage.setItem("__ai_remote_key__", k); } catch(e) {} },
+    getRemoteKey: getRemoteKey,
+    isReady: function(){
+      if (cfg.runtime === "lovable") return true;
+      if (cfg.runtime === "remote") return !!cfg.remoteEndpoint;
+      if (cfg.runtime === "on-device") {
+        var bridge = window.LlamaBridge || (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Llama);
+        return !!(bridge && bridge.chat);
+      }
+      return false;
+    },
+    chat: async function(messages, opts){
+      opts = opts || {};
+      if (cfg.runtime === "remote") return chatRemote(messages, opts.model);
+      if (cfg.runtime === "on-device") {
+        try { return await chatOnDevice(messages); }
+        catch(e) {
+          // Graceful fallback when opened in a plain browser, not the APK.
+          if (cfg.remoteEndpoint) return chatRemote(messages, opts.model);
+          return chatLovable(messages, opts.model);
+        }
+      }
+      return chatLovable(messages, opts.model);
+    }
+  };
+})();
 
 const TABS = ${tabsJSON};
 
