@@ -397,7 +397,7 @@ function Editor() {
               )}
             </TabsContent>
 
-
+            <TabsContent value="versions" className="space-y-2">
               {data.versions.map((v) => (
                 <div
                   key={v.id}
