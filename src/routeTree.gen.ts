@@ -17,6 +17,7 @@ import { Route as AuthenticatedNewRouteImport } from './routes/_authenticated/ne
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedEditorIdRouteImport } from './routes/_authenticated/editor.$id'
 import { Route as ApiPublicManifestSlugRouteImport } from './routes/api/public/manifest.$slug'
+import { Route as ApiPublicAiSlugRouteImport } from './routes/api/public/ai.$slug'
 
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
@@ -57,6 +58,11 @@ const ApiPublicManifestSlugRoute = ApiPublicManifestSlugRouteImport.update({
   path: '/api/public/manifest/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicAiSlugRoute = ApiPublicAiSlugRouteImport.update({
+  id: '/api/public/ai/$slug',
+  path: '/api/public/ai/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -65,6 +71,7 @@ export interface FileRoutesByFullPath {
   '/new': typeof AuthenticatedNewRoute
   '/a/$slug': typeof ASlugRoute
   '/editor/$id': typeof AuthenticatedEditorIdRoute
+  '/api/public/ai/$slug': typeof ApiPublicAiSlugRoute
   '/api/public/manifest/$slug': typeof ApiPublicManifestSlugRoute
 }
 export interface FileRoutesByTo {
@@ -74,6 +81,7 @@ export interface FileRoutesByTo {
   '/new': typeof AuthenticatedNewRoute
   '/a/$slug': typeof ASlugRoute
   '/editor/$id': typeof AuthenticatedEditorIdRoute
+  '/api/public/ai/$slug': typeof ApiPublicAiSlugRoute
   '/api/public/manifest/$slug': typeof ApiPublicManifestSlugRoute
 }
 export interface FileRoutesById {
@@ -85,6 +93,7 @@ export interface FileRoutesById {
   '/_authenticated/new': typeof AuthenticatedNewRoute
   '/a/$slug': typeof ASlugRoute
   '/_authenticated/editor/$id': typeof AuthenticatedEditorIdRoute
+  '/api/public/ai/$slug': typeof ApiPublicAiSlugRoute
   '/api/public/manifest/$slug': typeof ApiPublicManifestSlugRoute
 }
 export interface FileRouteTypes {
@@ -96,6 +105,7 @@ export interface FileRouteTypes {
     | '/new'
     | '/a/$slug'
     | '/editor/$id'
+    | '/api/public/ai/$slug'
     | '/api/public/manifest/$slug'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -105,6 +115,7 @@ export interface FileRouteTypes {
     | '/new'
     | '/a/$slug'
     | '/editor/$id'
+    | '/api/public/ai/$slug'
     | '/api/public/manifest/$slug'
   id:
     | '__root__'
@@ -115,6 +126,7 @@ export interface FileRouteTypes {
     | '/_authenticated/new'
     | '/a/$slug'
     | '/_authenticated/editor/$id'
+    | '/api/public/ai/$slug'
     | '/api/public/manifest/$slug'
   fileRoutesById: FileRoutesById
 }
@@ -123,6 +135,7 @@ export interface RootRouteChildren {
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
   AuthRoute: typeof AuthRoute
   ASlugRoute: typeof ASlugRoute
+  ApiPublicAiSlugRoute: typeof ApiPublicAiSlugRoute
   ApiPublicManifestSlugRoute: typeof ApiPublicManifestSlugRoute
 }
 
@@ -184,6 +197,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicManifestSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/ai/$slug': {
+      id: '/api/public/ai/$slug'
+      path: '/api/public/ai/$slug'
+      fullPath: '/api/public/ai/$slug'
+      preLoaderRoute: typeof ApiPublicAiSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -208,8 +228,19 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
   AuthRoute: AuthRoute,
   ASlugRoute: ASlugRoute,
+  ApiPublicAiSlugRoute: ApiPublicAiSlugRoute,
   ApiPublicManifestSlugRoute: ApiPublicManifestSlugRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
