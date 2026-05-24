@@ -55,8 +55,8 @@ function Editor() {
 
   const refineMut = useMutation({
     mutationFn: (message: string) => refine({ data: { projectId: id, message } }),
-    onSuccess: () => {
-      toast.success("Updated");
+    onSuccess: (res) => {
+      if (res?.mode === "edit") toast.success("App updated");
       setChatInput("");
       refetch();
     },
