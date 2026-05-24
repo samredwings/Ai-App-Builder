@@ -52,6 +52,11 @@ function Editor() {
   });
 
   const [chatInput, setChatInput] = useState("");
+  const chatScrollRef = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    const el = chatScrollRef.current;
+    if (el) el.scrollTop = el.scrollHeight;
+  });
 
   const refineMut = useMutation({
     mutationFn: (message: string) => refine({ data: { projectId: id, message } }),
