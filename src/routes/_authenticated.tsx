@@ -4,8 +4,8 @@ import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/_authenticated")({
   beforeLoad: async () => {
-    const { data, error } = await supabase.auth.getUser();
-    if (error || !data.user) {
+    const { data } = await supabase.auth.getSession();
+    if (!data.session) {
       throw redirect({ to: "/auth" });
     }
   },
