@@ -131,9 +131,17 @@ function AuthStateSync() {
   const router = useRouter();
   const queryClient = useQueryClient();
   useEffect(() => {
-    const { data } = supabase.auth.onAuthStateChange(() => {
+    const { data } = supabase.auth.onAuthStateChange((event) => {
+      // Ignore INITIAL_SESSION (fires every mount) and TOKEN_REFRESHED (fires on focus).
+      // Only react to real identity changes — otherwise beforeLoad guards re-run
+      // and bounce between /auth and /dashboard.
+      if (event !== "SIGNED_IN" && event !== "SIGNED_OUT" && event !== "USER_UPDATED") {
+        return;
+      }
       router.invalidate();
-      queryClient.invalidateQueries();
+      if (event !== "SIGNED_OUT") {
+        queryClient.invalidateQueries();
+      }
     });
     return () => data.subscription.unsubscribe();
   }, [router, queryClient]);
