@@ -339,6 +339,14 @@ function Editor() {
                   </Button>
                 </div>
               </div>
+
+              <div className="space-y-2 pt-2 border-t">
+                <Label>Upload custom icon</Label>
+                <IconUploader
+                  saving={uploadIconMut.isPending}
+                  onSave={(blob) => uploadIconMut.mutate(blob)}
+                />
+              </div>
             </TabsContent>
 
             <TabsContent value="ai" className="space-y-4">
