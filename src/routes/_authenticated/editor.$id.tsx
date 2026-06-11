@@ -18,6 +18,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { PreviewIframe } from "@/components/PreviewIframe";
+import { ThemeEditor } from "@/components/theme-editor";
 import { renderAppHTML } from "@/lib/app-runtime";
 import type { Theme, AIRuntime } from "@/lib/types";
 
