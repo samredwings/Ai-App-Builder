@@ -93,6 +93,25 @@ function Editor() {
     onError: (e) => toast.error(e instanceof Error ? e.message : "Failed"),
   });
 
+  const uploadIcon = useServerFn(uploadCustomIcon);
+  const uploadIconMut = useMutation({
+    mutationFn: async (blob: Blob) => {
+      const buf = await blob.arrayBuffer();
+      let binary = "";
+      const bytes = new Uint8Array(buf);
+      for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+      const base64 = btoa(binary);
+      return uploadIcon({
+        data: { projectId: id, base64, contentType: (blob.type || "image/png") as "image/png" },
+      });
+    },
+    onSuccess: () => {
+      toast.success("Icon updated");
+      refetch();
+    },
+    onError: (e) => toast.error(e instanceof Error ? e.message : "Upload failed"),
+  });
+
   const updateAI = useServerFn(updateAIRuntime);
   const exportBundle = useServerFn(exportAPKBundle);
 
