@@ -18,6 +18,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { PreviewIframe } from "@/components/PreviewIframe";
+import { ThemeEditor } from "@/components/theme-editor";
 import { renderAppHTML } from "@/lib/app-runtime";
 import type { Theme, AIRuntime } from "@/lib/types";
 
@@ -291,19 +292,11 @@ function Editor() {
 
 
             <TabsContent value="design" className="space-y-4">
-              {(["primary", "background", "foreground", "accent"] as const).map((k) => (
-                <div key={k} className="flex items-center justify-between gap-3">
-                  <Label className="capitalize">{k}</Label>
-                  <input
-                    type="color"
-                    value={project.theme[k]}
-                    onChange={(e) =>
-                      metaMut.mutate({ theme: { ...project.theme, [k]: e.target.value } })
-                    }
-                    className="h-9 w-16 cursor-pointer rounded border bg-transparent"
-                  />
-                </div>
-              ))}
+              <ThemeEditor
+                theme={project.theme}
+                onChange={(newTheme) => metaMut.mutate({ theme: newTheme })}
+              />
+
               <div className="space-y-2 pt-2 border-t">
                 <Label>App icon</Label>
                 <div className="flex gap-2">
