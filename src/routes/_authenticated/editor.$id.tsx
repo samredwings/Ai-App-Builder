@@ -17,6 +17,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
+import { PreviewIframe } from "@/components/PreviewIframe";
 import { renderAppHTML } from "@/lib/app-runtime";
 import type { Theme, AIRuntime } from "@/lib/types";
 
@@ -440,11 +441,9 @@ function Editor() {
             className="overflow-hidden rounded-[2.25rem] border-8 border-foreground/80 shadow-2xl"
             style={{ width: 360, height: 720, background: "#000" }}
           >
-            <iframe
+            <PreviewIframe
               key={`${project.id}-${data.tabs.length}-${JSON.stringify(project.theme)}`}
-              title="App preview"
               srcDoc={previewHtml}
-              sandbox="allow-scripts"
               className="h-full w-full border-0 bg-white"
             />
           </div>
