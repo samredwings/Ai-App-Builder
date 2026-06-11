@@ -8,6 +8,7 @@ import {
   revertToVersion,
   updateProjectMeta,
   regenerateIcon,
+  uploadCustomIcon,
 } from "@/lib/generate.functions";
 import { updateAIRuntime, exportAPKBundle } from "@/lib/export.functions";
 import { Button } from "@/components/ui/button";
