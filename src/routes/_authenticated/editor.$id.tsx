@@ -20,6 +20,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "sonner";
 import { PreviewIframe } from "@/components/PreviewIframe";
 import { ThemeEditor } from "@/components/theme-editor";
+import { IconUploader } from "@/components/icon-uploader";
 import { renderAppHTML } from "@/lib/app-runtime";
 import type { Theme, AIRuntime } from "@/lib/types";
 
