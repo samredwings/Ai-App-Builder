@@ -53,13 +53,12 @@ function Dashboard() {
           {data.map((p) => (
             <div
               key={p.id}
-              className="group rounded-xl border p-4 transition hover:shadow-md"
-              style={{ background: (p.theme as { background?: string })?.background ?? undefined }}
+              className="group rounded-xl border bg-card p-4 transition-all hover:shadow-md"
             >
               <Link
                 to="/editor/$id"
                 params={{ id: p.id }}
-                className="flex items-center gap-3"
+                className="flex items-center gap-4"
               >
                 {p.icon_url ? (
                   <img
@@ -74,29 +73,33 @@ function Dashboard() {
                   />
                 )}
                 <div className="min-w-0 flex-1">
-                  <div
-                    className="truncate font-semibold"
-                    style={{
-                      color: (p.theme as { foreground?: string })?.foreground ?? undefined,
-                    }}
-                  >
-                    {p.title}
-                  </div>
-                  <div className="text-xs text-muted-foreground">
-                    {p.is_published ? "Published" : "Draft"} ·{" "}
-                    {new Date(p.updated_at).toLocaleDateString()}
+                  <div className="truncate font-semibold">{p.title}</div>
+                  <div className="flex gap-3 text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+                    <span>ID: {p.id.slice(0, 8)}</span>
+                    <span>
+                      {p.is_published ? "Published" : "Draft"} ·{" "}
+                      {new Date(p.created_at).toLocaleDateString()}
+                    </span>
                   </div>
                 </div>
               </Link>
-              <div className="mt-3 flex justify-end opacity-0 transition group-hover:opacity-100">
-                <button
-                  className="text-xs text-destructive hover:underline"
+
+              <div className="mt-4 flex items-center justify-end gap-2">
+                <Link to="/editor/$id" params={{ id: p.id }}>
+                  <Button variant="outline" size="sm">
+                    Edit app
+                  </Button>
+                </Link>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-destructive hover:text-destructive"
                   onClick={() => {
                     if (confirm(`Delete "${p.title}"?`)) delMut.mutate(p.id);
                   }}
                 >
                   Delete
-                </button>
+                </Button>
               </div>
             </div>
           ))}
