@@ -134,7 +134,7 @@ async function uploadIcon(ownerId: string, projectId: string, prompt: string): P
 
 export const classifyAndGenerate = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input) => z.object({ prompt: z.string().min(3).max(2000) }).parse(input))
+  .inputValidator((input) => z.object({ prompt: z.string().min(3).max(100000) }).parse(input))
   .handler(async ({ data, context }) => {
     const { userId } = context;
 
@@ -218,7 +218,7 @@ const TOOL_CHAT_ROUTE = {
 export const refineProject = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) =>
-    z.object({ projectId: z.string().uuid(), message: z.string().min(1).max(2000) }).parse(input)
+    z.object({ projectId: z.string().uuid(), message: z.string().min(1).max(100000) }).parse(input)
   )
   .handler(async ({ data, context }) => {
     const { userId } = context;
