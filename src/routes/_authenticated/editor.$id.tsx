@@ -197,7 +197,7 @@ function Editor() {
             </div>
             <div className="flex items-center gap-2 shrink-0">
               <Link to="/dashboard">
-                <Button size="xs" variant="ghost" className="h-8 px-2 text-xs">
+                <Button size="sm" variant="ghost" className="h-8 px-2 text-xs">
                   Dashboard
                 </Button>
               </Link>
@@ -224,7 +224,7 @@ function Editor() {
               )}
               <Button
                 variant={project.is_published ? "outline" : "default"}
-                size="xs"
+                size="sm"
                 className="h-7 text-xs px-2.5"
                 onClick={() => metaMut.mutate({ is_published: !project.is_published })}
               >
@@ -458,7 +458,7 @@ function Editor() {
                     {v.created_by_message ?? "Initial generation"}
                   </div>
                 </div>
-                <Button size="xs" variant="outline" className="h-7 text-xs px-2.5 shrink-0" onClick={() => revertMut.mutate(v.id)}>
+                <Button size="sm" variant="outline" className="h-7 text-xs px-2.5 shrink-0" onClick={() => revertMut.mutate(v.id)}>
                   Revert
                 </Button>
               </div>
