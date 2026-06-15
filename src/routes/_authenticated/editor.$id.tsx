@@ -124,8 +124,7 @@ function Editor() {
     onError: (e) => toast.error(e instanceof Error ? e.message : "Failed"),
   });
 
-    onError: (e) => toast.error(e instanceof Error ? e.message : "Export failed"),
-  });
+
 
   const previewHtml = useMemo(() => {
     if (!data) return "";
