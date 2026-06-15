@@ -34,3 +34,11 @@ export type AppSpec = {
   icon_prompt: string;
   persistence: "local" | "synced";
 };
+
+export type Message = {
+  id: string;
+  role: "user" | "assistant";
+  content: string;
+  created_at: string;
+};
+
