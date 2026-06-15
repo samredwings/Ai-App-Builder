@@ -21,8 +21,11 @@ import { toast } from "sonner";
 import { PreviewIframe } from "@/components/PreviewIframe";
 import { ThemeEditor } from "@/components/theme-editor";
 import { IconUploader } from "@/components/icon-uploader";
+import { ChatTab } from "@/components/chat/ChatTab";
+import { ExportTab } from "@/components/export/ExportTab";
 import { renderAppHTML } from "@/lib/app-runtime";
-import type { Theme, AIRuntime } from "@/lib/types";
+import type { Theme, AIRuntime, Message } from "@/lib/types";
+
 
 export const Route = createFileRoute("/_authenticated/editor/$id")({
   head: () => ({ meta: [{ title: "Editor — App Forge" }] }),
@@ -244,68 +247,15 @@ function Editor() {
             <TabsTrigger value="export" className="text-xs">Export</TabsTrigger>
           </TabsList>
 
-          {/* CHAT TAB - Extended for Code and Instructions */}
+          {/* CHAT TAB */}
           <TabsContent value="chat" className="flex-1 flex flex-col min-h-0 mt-3 overflow-hidden">
-            <div
-              ref={chatScrollRef}
-              className="flex-1 overflow-y-auto rounded-lg border bg-background/50 p-3 space-y-3 min-h-0"
-            >
-              {data.messages.length === 0 ? (
-                <div className="text-xs text-muted-foreground space-y-2 p-1">
-                  <p className="font-semibold text-foreground">Co-builder Chat</p>
-                  <p>Paste entire code files, describe UI components, or request features like:</p>
-                  <ul className="list-disc pl-4 space-y-1">
-                    <li>"Add an entries log and persist it with appStorage"</li>
-                    <li>"Create a beautiful dashboard tab for tracking goals"</li>
-                    <li>"Make a clean, modern catalog tab for our items"</li>
-                  </ul>
-                </div>
-              ) : (
-                data.messages.map((m) => (
-                  <div
-                    key={m.id}
-                    className={`max-w-[85%] rounded-lg px-3 py-2 text-sm whitespace-pre-wrap break-words ${
-                      m.role === "user"
-                        ? "ml-auto bg-primary text-primary-foreground"
-                        : "mr-auto bg-muted"
-                    }`}
-                  >
-                    {m.content}
-                  </div>
-                ))
-              )}
-              {refineMut.isPending && (
-                <div className="mr-auto rounded-lg bg-muted px-3 py-2 text-sm text-muted-foreground animate-pulse">
-                  Processing instructions and rebuilding app spec…
-                </div>
-              )}
-            </div>
-
-            <div className="mt-3 shrink-0 space-y-2">
-              <Textarea
-                rows={4}
-                value={chatInput}
-                onChange={(e) => setChatInput(e.target.value)}
-                placeholder="Paste code or type development instructions here..."
-                className="resize-none text-sm font-sans"
-                disabled={refineMut.isPending}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && !e.shiftKey) {
-                    e.preventDefault();
-                    const v = chatInput.trim();
-                    if (v && !refineMut.isPending) refineMut.mutate(v);
-                  }
-                }}
-              />
-              <Button
-                className="w-full"
-                disabled={refineMut.isPending || chatInput.trim().length < 1}
-                onClick={() => refineMut.mutate(chatInput.trim())}
-              >
-                {refineMut.isPending ? "Refining App..." : "Refine App"}
-              </Button>
-            </div>
+            <ChatTab
+              messages={data.messages as Message[]}
+              isPending={refineMut.isPending}
+              onSend={(msg) => refineMut.mutate(msg)}
+            />
           </TabsContent>
+
 
           {/* DESIGN TAB - Theme & Custom Icon */}
           <TabsContent value="design" className="flex-1 overflow-y-auto space-y-5 mt-3 pr-1">
@@ -465,45 +415,15 @@ function Editor() {
             ))}
           </TabsContent>
 
-          {/* EXPORT TAB - Production & APK Pipelines */}
-          <TabsContent value="export" className="flex-1 overflow-y-auto space-y-4 mt-3 pr-1">
-            <div className="p-4 border rounded-lg bg-card/50 space-y-3">
-              <div>
-                <h3 className="font-semibold text-sm">APK Distribution</h3>
-                <p className="text-xs text-muted-foreground leading-relaxed mt-1">
-                  Download a full offline Capacitor Android build. Includes standard integration setup.
-                </p>
-              </div>
-              <Button
-                className="w-full h-9 text-xs"
-                disabled={exportMut.isPending}
-                onClick={() => exportMut.mutate()}
-              >
-                {exportMut.isPending ? "Generating APK Bundle…" : "Generate APK Bundle"}
-              </Button>
-            </div>
-
-            {project.is_published && (
-              <div className="p-4 border rounded-lg bg-card/50 space-y-3">
-                <div>
-                  <h3 className="font-semibold text-sm">PWA Builder Engine</h3>
-                  <p className="text-xs text-muted-foreground leading-relaxed mt-1">
-                    Convert your live web application link into an immediate Google Play Store app bundle automatically.
-                  </p>
-                </div>
-                <a
-                  href={`https://www.pwabuilder.com/reportcard?site=${encodeURIComponent(publishedUrl)}`}
-                  target="_blank"
-                  rel="noopener"
-                  className="block w-full"
-                >
-                  <Button className="w-full h-9 text-xs" variant="outline">
-                    PWA APK Generator ↗
-                  </Button>
-                </a>
-              </div>
-            )}
+          {/* EXPORT TAB */}
+          <TabsContent value="export" className="flex-1 flex flex-col min-h-0 mt-3 overflow-hidden">
+            <ExportTab
+              projectId={project.id}
+              publishedUrl={publishedUrl}
+              isPublished={project.is_published}
+            />
           </TabsContent>
+
         </Tabs>
       </aside>
 
