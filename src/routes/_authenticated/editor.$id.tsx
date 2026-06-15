@@ -60,9 +60,17 @@ function Editor() {
 
   const refineMut = useMutation({
     mutationFn: (message: string) => refine({ data: { projectId: id, message } }),
-    onSuccess: (res) => {
-      if (res?.mode === "edit") toast.success("App updated");
-      refetch();
+    onSuccess: async (res) => {
+      const oldTabs = (data?.tabs ?? []) as { name: string }[];
+      const refreshed = await refetch();
+      if (res?.mode === "edit") {
+        const newTabs = (refreshed.data?.tabs ?? []) as { name: string }[];
+        const added = newTabs.filter((n) => !oldTabs.some((t) => t.name === n.name));
+        const removed = oldTabs.filter((t) => !newTabs.some((n) => n.name === t.name));
+        if (added.length) toast.success(`Added tab: ${added.map((t) => t.name).join(", ")}`);
+        if (removed.length) toast.success(`Removed: ${removed.map((t) => t.name).join(", ")}`);
+        if (!added.length && !removed.length) toast.success("App updated");
+      }
     },
     onError: (e) => toast.error(e instanceof Error ? e.message : "Failed"),
   });
