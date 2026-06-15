@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo } from "react";
 import { getProject } from "@/lib/projects.functions";
 import {
   refineProject,
@@ -10,11 +10,11 @@ import {
   regenerateIcon,
   uploadCustomIcon,
 } from "@/lib/generate.functions";
-import { updateAIRuntime, exportAPKBundle } from "@/lib/export.functions";
+import { updateAIRuntime } from "@/lib/export.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
