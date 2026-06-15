@@ -11,7 +11,9 @@ export function renderAppHTML(opts: {
   appDataEndpoint: string;
   ai: AIConfig;
 }): string {
-  const { title, theme, iconUrl, tabs, manifestUrl, appDataEndpoint, ai } = opts;
+  const { title, theme: rawTheme, iconUrl, tabs, manifestUrl, appDataEndpoint, ai } = opts;
+  const theme = sanitizeTheme(rawTheme);
+
 
   const safeTabs = tabs.map((t, i) => ({
     name: t.name || `Tab ${i + 1}`,
@@ -205,3 +207,17 @@ function escapeHTML(s: string): string {
     ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!
   );
 }
+
+const HEX_RE = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i;
+function safeColor(v: string, fallback: string): string {
+  return typeof v === "string" && HEX_RE.test(v) ? v : fallback;
+}
+function sanitizeTheme(t: Theme): Theme {
+  return {
+    primary: safeColor(t?.primary, "#4f46e5"),
+    background: safeColor(t?.background, "#ffffff"),
+    foreground: safeColor(t?.foreground, "#0f172a"),
+    accent: safeColor(t?.accent, "#a78bfa"),
+  };
+}
+
