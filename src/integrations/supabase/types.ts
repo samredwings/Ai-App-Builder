@@ -14,6 +14,47 @@ export type Database = {
   }
   public: {
     Tables: {
+      ai_logs: {
+        Row: {
+          created_at: string
+          error_message: string | null
+          id: string
+          latency_ms: number
+          model: string
+          project_id: string | null
+          success: boolean
+          token_count: number | null
+        }
+        Insert: {
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          latency_ms: number
+          model: string
+          project_id?: string | null
+          success: boolean
+          token_count?: number | null
+        }
+        Update: {
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          latency_ms?: number
+          model?: string
+          project_id?: string | null
+          success?: boolean
+          token_count?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_logs_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       app_data: {
         Row: {
           device_key: string
