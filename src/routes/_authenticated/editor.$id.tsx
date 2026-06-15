@@ -58,22 +58,15 @@ function Editor() {
     queryFn: () => get({ data: { projectId: id } }),
   });
 
-  const [chatInput, setChatInput] = useState("");
-  const chatScrollRef = useRef<HTMLDivElement | null>(null);
-  useEffect(() => {
-    const el = chatScrollRef.current;
-    if (el) el.scrollTop = el.scrollHeight;
-  });
-
   const refineMut = useMutation({
     mutationFn: (message: string) => refine({ data: { projectId: id, message } }),
     onSuccess: (res) => {
       if (res?.mode === "edit") toast.success("App updated");
-      setChatInput("");
       refetch();
     },
     onError: (e) => toast.error(e instanceof Error ? e.message : "Failed"),
   });
+
 
   const revertMut = useMutation({
     mutationFn: (versionId: string) => revert({ data: { projectId: id, versionId } }),
@@ -116,7 +109,6 @@ function Editor() {
   });
 
   const updateAI = useServerFn(updateAIRuntime);
-  const exportBundle = useServerFn(exportAPKBundle);
 
   const aiMut = useMutation({
     mutationFn: (patch: {
@@ -132,22 +124,6 @@ function Editor() {
     onError: (e) => toast.error(e instanceof Error ? e.message : "Failed"),
   });
 
-  const exportMut = useMutation({
-    mutationFn: () =>
-      exportBundle({ data: { projectId: id, origin: window.location.origin } }),
-    onSuccess: (res) => {
-      const blob = new Blob(
-        [Uint8Array.from(atob(res.base64), (c) => c.charCodeAt(0))],
-        { type: "application/zip" }
-      );
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = res.filename;
-      a.click();
-      URL.revokeObjectURL(url);
-      toast.success("APK bundle downloaded");
-    },
     onError: (e) => toast.error(e instanceof Error ? e.message : "Export failed"),
   });
 
