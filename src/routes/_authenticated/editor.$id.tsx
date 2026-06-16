@@ -198,27 +198,6 @@ function Editor() {
       <aside className="border-r bg-muted/10 flex flex-col h-full overflow-hidden">
         {/* Header bar */}
         <div className="p-4 border-b space-y-3 bg-card/30">
-          <div className="flex items-center gap-3 justify-between">
-            <div className="flex items-center gap-2 min-w-0">
-              {project.icon_url && (
-                <img src={project.icon_url} alt="" className="h-8 w-8 rounded-lg shrink-0 object-cover" />
-              )}
-              <Input
-                value={project.title}
-                onChange={(e) =>
-                  metaMut.mutate({ title: e.target.value.slice(0, 60) })
-                }
-                className="h-8 text-sm font-semibold max-w-[180px]"
-              />
-            </div>
-            <div className="flex items-center gap-2 shrink-0">
-              <Link to="/dashboard">
-                <Button size="sm" variant="ghost" className="h-8 px-2 text-xs">
-                  Dashboard
-                </Button>
-              </Link>
-            </div>
-          </div>
 
           <div className="flex items-center gap-3 justify-between">
             <Link to="/dashboard" className="shrink-0">
