@@ -23,6 +23,7 @@ import { ThemeEditor } from "@/components/theme-editor";
 import { IconUploader } from "@/components/icon-uploader";
 import { ChatTab } from "@/components/chat/ChatTab";
 import { ExportTab } from "@/components/export/ExportTab";
+import { RoadmapTab } from "@/components/RoadmapTab";
 import { renderAppHTML } from "@/lib/app-runtime";
 import type { Theme, AIRuntime, Message } from "@/lib/types";
 
