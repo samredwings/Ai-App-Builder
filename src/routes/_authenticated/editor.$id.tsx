@@ -223,8 +223,9 @@ function Editor() {
 
         {/* Tabs Interface */}
         <Tabs defaultValue="chat" className="flex-1 flex flex-col overflow-hidden p-4">
-          <TabsList className="grid w-full grid-cols-5 shrink-0 h-9">
+          <TabsList className="grid w-full grid-cols-6 shrink-0 h-9">
             <TabsTrigger value="chat" className="text-xs">Chat</TabsTrigger>
+            <TabsTrigger value="roadmap" className="text-xs">Plan</TabsTrigger>
             <TabsTrigger value="design" className="text-xs">Design</TabsTrigger>
             <TabsTrigger value="ai" className="text-xs">AI</TabsTrigger>
             <TabsTrigger value="versions" className="text-xs">History</TabsTrigger>
