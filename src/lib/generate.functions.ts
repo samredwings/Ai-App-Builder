@@ -185,6 +185,20 @@ export const classifyAndGenerate = createServerFn({ method: "POST" })
       },
     ]);
 
+    const firstAssistantReply = `Generated ${spec.title} with ${spec.tabs.length} tabs.`;
+    await Promise.all([
+      extractRequirementsForTurn({
+        projectId,
+        versionNum: 1,
+        userMessage: data.prompt,
+        assistantReply: firstAssistantReply,
+        isFirstTurn: true,
+      }).catch((e) => console.error("[brd] initial extract failed", e)),
+      runStaticTestsForCurrentVersion(projectId).catch((e) =>
+        console.error("[tests] initial static failed", e)
+      ),
+    ]);
+
     return { projectId, slug };
   });
 
