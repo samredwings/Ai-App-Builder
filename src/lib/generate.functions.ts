@@ -357,6 +357,19 @@ export const refineProject = createServerFn({ method: "POST" })
       },
     ]);
 
+    await Promise.all([
+      extractRequirementsForTurn({
+        projectId: data.projectId,
+        versionNum: newVersionNum,
+        userMessage: data.message,
+        assistantReply: decision.reply,
+        isFirstTurn: false,
+      }).catch((e) => console.error("[brd] extract failed", e)),
+      runStaticTestsForCurrentVersion(data.projectId).catch((e) =>
+        console.error("[tests] static failed", e)
+      ),
+    ]);
+
     return { mode: "edit" as const, versionId: v.id };
   });
 
