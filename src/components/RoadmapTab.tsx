@@ -100,7 +100,7 @@ export function RoadmapTab({ projectId }: { projectId: string }) {
   const done = reqs.filter((r) => r.status === "done").length;
   const pct = total === 0 ? 0 : Math.round((done / total) * 100);
 
-  const tests = data.tests as TestRow[];
+  const tests = data.tests as unknown as TestRow[];
   const latestStatic = tests.find((t) => t.kind === "static") ?? null;
 
   return (
