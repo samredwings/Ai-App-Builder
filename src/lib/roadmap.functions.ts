@@ -364,11 +364,16 @@ export const deleteRequirement = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { data: row } = await supabaseAdmin
       .from("requirements")
-      .select("id, projects:projects!inner(owner_id)")
+      .select("id, project_id")
       .eq("id", data.id)
       .single();
-    const ownerId = (row as unknown as { projects: { owner_id: string } } | null)?.projects?.owner_id;
-    if (!row || ownerId !== context.userId) throw new Error("Not found");
+    if (!row) throw new Error("Not found");
+    const { data: proj } = await supabaseAdmin
+      .from("projects")
+      .select("owner_id")
+      .eq("id", row.project_id)
+      .single();
+    if (!proj || proj.owner_id !== context.userId) throw new Error("Not found");
     await supabaseAdmin.from("requirements").delete().eq("id", data.id);
     return { ok: true };
   });
