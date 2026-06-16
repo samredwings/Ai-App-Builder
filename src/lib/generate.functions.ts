@@ -4,6 +4,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { callAIWithTool, generateImage } from "./ai.server";
 import { slugify } from "./slug";
+import { extractRequirementsForTurn, runStaticTestsForCurrentVersion } from "./roadmap.functions";
 import type { AppSpec, Theme } from "./types";
 
 const SYSTEM_GENERATE = `You design small, polished, multi-page mobile web apps for non-technical creators.
