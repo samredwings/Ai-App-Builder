@@ -271,7 +271,7 @@ function Editor() {
           <TabsContent value="chat" className="flex-1 flex flex-col min-h-0 mt-3 overflow-hidden">
             <ChatTab
               messages={data.messages as Message[]}
-              isPending={refineMut.isPending}
+              isPending={isRefining}
               onSend={(msg) => refineMut.mutate(msg)}
             />
           </TabsContent>
