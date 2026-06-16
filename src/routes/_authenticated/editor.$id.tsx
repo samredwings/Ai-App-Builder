@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery, useMutation, useIsMutating, useQueryClient } from "@tanstack/react-query";
 import { useMemo } from "react";
 import { getProject } from "@/lib/projects.functions";
 import {
@@ -59,8 +59,30 @@ function Editor() {
     queryFn: () => get({ data: { projectId: id } }),
   });
 
+  const queryClient = useQueryClient();
+  const refineMutationKey = useMemo(() => ["refine", id] as const, [id]);
+
   const refineMut = useMutation({
+    mutationKey: refineMutationKey,
     mutationFn: (message: string) => refine({ data: { projectId: id, message } }),
+    onMutate: (message: string) => {
+      // Optimistically append the user's message so the chat reflects the send immediately,
+      // even before the AI responds — fixes "AI is waiting on me" perception.
+      const prev = queryClient.getQueryData(["project", id]) as
+        | { messages?: Message[] }
+        | undefined;
+      const optimistic: Message = {
+        id: `optimistic-${Date.now()}`,
+        role: "user",
+        content: message,
+        created_at: new Date().toISOString(),
+      };
+      queryClient.setQueryData(["project", id], {
+        ...(prev ?? {}),
+        messages: [...((prev?.messages as Message[]) ?? []), optimistic],
+      });
+      return { prev };
+    },
     onSuccess: async (res) => {
       const oldTabs = (data?.tabs ?? []) as { name: string }[];
       const refreshed = await refetch();
@@ -73,8 +95,15 @@ function Editor() {
         if (!added.length && !removed.length) toast.success("App updated");
       }
     },
-    onError: (e) => toast.error(e instanceof Error ? e.message : "Failed"),
+    onError: (e, _msg, ctx) => {
+      if (ctx?.prev) queryClient.setQueryData(["project", id], ctx.prev);
+      toast.error(e instanceof Error ? e.message : "Failed");
+    },
   });
+
+  // Detects an in-flight refine even after navigating away and back to this editor —
+  // mutations run on the QueryClient, which lives at the root and outlives the page.
+  const isRefining = useIsMutating({ mutationKey: refineMutationKey }) > 0;
 
 
   const revertMut = useMutation({
@@ -169,8 +198,14 @@ function Editor() {
       <aside className="border-r bg-muted/10 flex flex-col h-full overflow-hidden">
         {/* Header bar */}
         <div className="p-4 border-b space-y-3 bg-card/30">
+
           <div className="flex items-center gap-3 justify-between">
-            <div className="flex items-center gap-2 min-w-0">
+            <Link to="/dashboard" className="shrink-0">
+              <Button size="sm" variant="ghost" className="h-8 px-2 text-xs gap-1" title="Back to dashboard">
+                <span aria-hidden>←</span> Dashboard
+              </Button>
+            </Link>
+            <div className="flex items-center gap-2 min-w-0 flex-1 justify-end">
               {project.icon_url && (
                 <img src={project.icon_url} alt="" className="h-8 w-8 rounded-lg shrink-0 object-cover" />
               )}
@@ -182,14 +217,14 @@ function Editor() {
                 className="h-8 text-sm font-semibold max-w-[180px]"
               />
             </div>
-            <div className="flex items-center gap-2 shrink-0">
-              <Link to="/dashboard">
-                <Button size="sm" variant="ghost" className="h-8 px-2 text-xs">
-                  Dashboard
-                </Button>
-              </Link>
-            </div>
           </div>
+
+          {isRefining && (
+            <div className="flex items-center gap-2 rounded-md border border-primary/30 bg-primary/5 px-2 py-1.5 text-[11px] text-primary">
+              <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
+              Refining in background — you can switch tabs or projects, it won't be cancelled.
+            </div>
+          )}
 
           <div className="flex items-center justify-between gap-2 pt-1">
             <div className="flex items-center gap-1.5">
@@ -236,7 +271,7 @@ function Editor() {
           <TabsContent value="chat" className="flex-1 flex flex-col min-h-0 mt-3 overflow-hidden">
             <ChatTab
               messages={data.messages as Message[]}
-              isPending={refineMut.isPending}
+              isPending={isRefining}
               onSend={(msg) => refineMut.mutate(msg)}
             />
           </TabsContent>

@@ -21,8 +21,12 @@ export function renderAppHTML(opts: {
     html: t.html || "",
   }));
 
-  const tabsJSON = JSON.stringify(safeTabs);
-  const aiJSON = JSON.stringify({
+  // CRITICAL: escape `</` so any `</script>` inside generated tab HTML doesn't
+  // terminate the outer inline <script> block (which would blank the app).
+  const safeJSON = (v: unknown) =>
+    JSON.stringify(v).replace(/<\/(script)/gi, "<\\/$1").replace(/<!--/g, "<\\!--");
+  const tabsJSON = safeJSON(safeTabs);
+  const aiJSON = safeJSON({
     runtime: ai.runtime,
     remoteEndpoint: ai.remoteEndpoint ?? null,
     remoteModel: ai.remoteModel ?? null,
