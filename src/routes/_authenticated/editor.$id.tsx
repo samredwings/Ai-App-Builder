@@ -59,8 +59,30 @@ function Editor() {
     queryFn: () => get({ data: { projectId: id } }),
   });
 
+  const queryClient = useQueryClient();
+  const refineMutationKey = useMemo(() => ["refine", id] as const, [id]);
+
   const refineMut = useMutation({
+    mutationKey: refineMutationKey,
     mutationFn: (message: string) => refine({ data: { projectId: id, message } }),
+    onMutate: (message: string) => {
+      // Optimistically append the user's message so the chat reflects the send immediately,
+      // even before the AI responds — fixes "AI is waiting on me" perception.
+      const prev = queryClient.getQueryData(["project", id]) as
+        | { messages?: Message[] }
+        | undefined;
+      const optimistic: Message = {
+        id: `optimistic-${Date.now()}`,
+        role: "user",
+        content: message,
+        created_at: new Date().toISOString(),
+      };
+      queryClient.setQueryData(["project", id], {
+        ...(prev ?? {}),
+        messages: [...((prev?.messages as Message[]) ?? []), optimistic],
+      });
+      return { prev };
+    },
     onSuccess: async (res) => {
       const oldTabs = (data?.tabs ?? []) as { name: string }[];
       const refreshed = await refetch();
@@ -73,8 +95,15 @@ function Editor() {
         if (!added.length && !removed.length) toast.success("App updated");
       }
     },
-    onError: (e) => toast.error(e instanceof Error ? e.message : "Failed"),
+    onError: (e, _msg, ctx) => {
+      if (ctx?.prev) queryClient.setQueryData(["project", id], ctx.prev);
+      toast.error(e instanceof Error ? e.message : "Failed");
+    },
   });
+
+  // Detects an in-flight refine even after navigating away and back to this editor —
+  // mutations run on the QueryClient, which lives at the root and outlives the page.
+  const isRefining = useIsMutating({ mutationKey: refineMutationKey }) > 0;
 
 
   const revertMut = useMutation({
