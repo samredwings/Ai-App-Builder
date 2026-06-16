@@ -84,6 +84,35 @@ function Dashboard() {
                 </div>
               </Link>
 
+              <div className="mt-3 space-y-1.5">
+                <div className="flex items-center justify-between text-[11px] text-muted-foreground">
+                  <span>Progress</span>
+                  <span>
+                    {p.progress.done}/{p.progress.total} ({p.progress.pct}%)
+                  </span>
+                </div>
+                <div className="h-1.5 w-full rounded-full bg-muted overflow-hidden">
+                  <div
+                    className="h-full bg-primary transition-all"
+                    style={{ width: `${p.progress.pct}%` }}
+                  />
+                </div>
+                {p.lastStatic && (
+                  <div
+                    className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium ${
+                      p.lastStatic.passed
+                        ? "bg-green-500/10 text-green-700 dark:text-green-400"
+                        : "bg-red-500/10 text-red-700 dark:text-red-400"
+                    }`}
+                  >
+                    <span className={`h-1.5 w-1.5 rounded-full ${p.lastStatic.passed ? "bg-green-500" : "bg-red-500"}`} />
+                    {p.lastStatic.passed
+                      ? `Tests pass${p.lastStatic.issueCount > 0 ? ` (${p.lastStatic.issueCount} warnings)` : ""}`
+                      : `${p.lastStatic.issueCount} issue${p.lastStatic.issueCount === 1 ? "" : "s"}`}
+                  </div>
+                )}
+              </div>
+
               <div className="mt-4 flex items-center justify-end gap-2">
                 <Link to="/editor/$id" params={{ id: p.id }}>
                   <Button variant="outline" size="sm">

@@ -4,6 +4,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { callAIWithTool, generateImage } from "./ai.server";
 import { slugify } from "./slug";
+import { extractRequirementsForTurn, runStaticTestsForCurrentVersion } from "./roadmap.functions";
 import type { AppSpec, Theme } from "./types";
 
 const SYSTEM_GENERATE = `You design small, polished, multi-page mobile web apps for non-technical creators.
@@ -184,6 +185,20 @@ export const classifyAndGenerate = createServerFn({ method: "POST" })
       },
     ]);
 
+    const firstAssistantReply = `Generated ${spec.title} with ${spec.tabs.length} tabs.`;
+    await Promise.all([
+      extractRequirementsForTurn({
+        projectId,
+        versionNum: 1,
+        userMessage: data.prompt,
+        assistantReply: firstAssistantReply,
+        isFirstTurn: true,
+      }).catch((e) => console.error("[brd] initial extract failed", e)),
+      runStaticTestsForCurrentVersion(projectId).catch((e) =>
+        console.error("[tests] initial static failed", e)
+      ),
+    ]);
+
     return { projectId, slug };
   });
 
@@ -340,6 +355,19 @@ export const refineProject = createServerFn({ method: "POST" })
         content: decision.reply,
         version_id_after: v.id,
       },
+    ]);
+
+    await Promise.all([
+      extractRequirementsForTurn({
+        projectId: data.projectId,
+        versionNum: newVersionNum,
+        userMessage: data.message,
+        assistantReply: decision.reply,
+        isFirstTurn: false,
+      }).catch((e) => console.error("[brd] extract failed", e)),
+      runStaticTestsForCurrentVersion(data.projectId).catch((e) =>
+        console.error("[tests] static failed", e)
+      ),
     ]);
 
     return { mode: "edit" as const, versionId: v.id };

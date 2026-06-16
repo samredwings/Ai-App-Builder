@@ -224,6 +224,98 @@ export type Database = {
         }
         Relationships: []
       }
+      requirements: {
+        Row: {
+          created_at: string
+          id: string
+          position: number
+          project_id: string
+          source: string
+          status: string
+          text: string
+          updated_at: string
+          version_first_seen: number | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          position?: number
+          project_id: string
+          source?: string
+          status?: string
+          text: string
+          updated_at?: string
+          version_first_seen?: number | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          position?: number
+          project_id?: string
+          source?: string
+          status?: string
+          text?: string
+          updated_at?: string
+          version_first_seen?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "requirements_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      test_results: {
+        Row: {
+          created_at: string
+          id: string
+          issue_count: number
+          issues: Json
+          kind: string
+          passed: boolean
+          project_id: string
+          version_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          issue_count?: number
+          issues?: Json
+          kind: string
+          passed: boolean
+          project_id: string
+          version_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          issue_count?: number
+          issues?: Json
+          kind?: string
+          passed?: boolean
+          project_id?: string
+          version_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "test_results_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "test_results_version_id_fkey"
+            columns: ["version_id"]
+            isOneToOne: false
+            referencedRelation: "project_versions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never

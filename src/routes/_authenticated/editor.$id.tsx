@@ -23,6 +23,7 @@ import { ThemeEditor } from "@/components/theme-editor";
 import { IconUploader } from "@/components/icon-uploader";
 import { ChatTab } from "@/components/chat/ChatTab";
 import { ExportTab } from "@/components/export/ExportTab";
+import { RoadmapTab } from "@/components/RoadmapTab";
 import { renderAppHTML } from "@/lib/app-runtime";
 import type { Theme, AIRuntime, Message } from "@/lib/types";
 
@@ -222,8 +223,9 @@ function Editor() {
 
         {/* Tabs Interface */}
         <Tabs defaultValue="chat" className="flex-1 flex flex-col overflow-hidden p-4">
-          <TabsList className="grid w-full grid-cols-5 shrink-0 h-9">
+          <TabsList className="grid w-full grid-cols-6 shrink-0 h-9">
             <TabsTrigger value="chat" className="text-xs">Chat</TabsTrigger>
+            <TabsTrigger value="roadmap" className="text-xs">Plan</TabsTrigger>
             <TabsTrigger value="design" className="text-xs">Design</TabsTrigger>
             <TabsTrigger value="ai" className="text-xs">AI</TabsTrigger>
             <TabsTrigger value="versions" className="text-xs">History</TabsTrigger>
@@ -238,6 +240,13 @@ function Editor() {
               onSend={(msg) => refineMut.mutate(msg)}
             />
           </TabsContent>
+
+          {/* ROADMAP / PLAN TAB */}
+          <TabsContent value="roadmap" className="flex-1 overflow-y-auto mt-3 pr-1">
+            <RoadmapTab projectId={project.id} />
+          </TabsContent>
+
+
 
 
           {/* DESIGN TAB - Theme & Custom Icon */}
