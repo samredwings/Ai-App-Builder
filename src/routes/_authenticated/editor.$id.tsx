@@ -241,6 +241,13 @@ function Editor() {
             />
           </TabsContent>
 
+          {/* ROADMAP / PLAN TAB */}
+          <TabsContent value="roadmap" className="flex-1 overflow-y-auto mt-3 pr-1">
+            <RoadmapTab projectId={project.id} />
+          </TabsContent>
+
+
+
 
           {/* DESIGN TAB - Theme & Custom Icon */}
           <TabsContent value="design" className="flex-1 overflow-y-auto space-y-5 mt-3 pr-1">
