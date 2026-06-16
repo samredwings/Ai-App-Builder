@@ -220,6 +220,33 @@ function Editor() {
             </div>
           </div>
 
+          <div className="flex items-center gap-3 justify-between">
+            <Link to="/dashboard" className="shrink-0">
+              <Button size="sm" variant="ghost" className="h-8 px-2 text-xs gap-1" title="Back to dashboard">
+                <span aria-hidden>←</span> Dashboard
+              </Button>
+            </Link>
+            <div className="flex items-center gap-2 min-w-0 flex-1 justify-end">
+              {project.icon_url && (
+                <img src={project.icon_url} alt="" className="h-8 w-8 rounded-lg shrink-0 object-cover" />
+              )}
+              <Input
+                value={project.title}
+                onChange={(e) =>
+                  metaMut.mutate({ title: e.target.value.slice(0, 60) })
+                }
+                className="h-8 text-sm font-semibold max-w-[180px]"
+              />
+            </div>
+          </div>
+
+          {isRefining && (
+            <div className="flex items-center gap-2 rounded-md border border-primary/30 bg-primary/5 px-2 py-1.5 text-[11px] text-primary">
+              <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
+              Refining in background — you can switch tabs or projects, it won't be cancelled.
+            </div>
+          )}
+
           <div className="flex items-center justify-between gap-2 pt-1">
             <div className="flex items-center gap-1.5">
               <span className={`h-2 w-2 rounded-full ${project.is_published ? "bg-green-500 animate-pulse" : "bg-muted"}`} />
